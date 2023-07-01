@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kablammo&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+    <title>Movie and TV Show Website</title>
+    <style>
+        body{
+            
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('mvbg.jpg');
+            background-color: black;
+        }
+        .content-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    
+        .card {
+            width: 300px;
+            margin: 20px;
+        }
+    
+        .card-img-top {
+            height: 400px;
+            object-fit: cover;
+        }
+    
+        .card-title {
+            margin-bottom: 0;
+        }
+    
+        .card-text {
+            height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .input-group{
+            height: 40%;
+            align-items: center;
+        }
+        .search-input{
+            width: 30%;
+        }
+        .search-container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40vh;
+        }
+        .search-button{
+            padding: 10px 10px;
+            font-size: 16px;
+        }
+        .titles{
+            text-shadow: 2px 2px 4px #000000;
+            font-family: 'Cinzel Decorative', cursive;
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 200px;
+        }
+        .navbar{
+            background-color: none;
+        }
+        h1{
+            font-size: 70px;
+            font-weight: 600;
+        }
+        .navs{
+            color: white;
+            display: flex;
+            justify-content: center;
+            font-family: 'Kablammo', cursive;
+            font-size: 50px;
+        }
+        .navs:hover{ 
+            text-decoration: none;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    
+    <nav class="navbar">
+        <div class="container-fluid navs ">
+          <a class="navs" href="#">
+            OVIES
+          </a>
+        </div>
+      </nav>
+      <div class="container titles">
+        <h1>Welcome to your favorite movie and TV show searches</h1>
+      </div>
+    
+    <div class="container">
+        <div class="search-container">
+            <div class="input-group my-5">
+                <input type="text" id="searchInput" class="form-control search-input" placeholder="Search movies...">
+                <div class="input-group-append">
+                    <button id="searchButton" class="btn btn-dark">Search Movies</button>
+                </div>
+                <button id="tvShowButton" class="btn btn-outline-light ml-2 ">TV Shows</button>
+            </div>
+            
+            
+        </div>
+        
+        <div id="content" class="content-container tvbnt"></div>
+    </div>
+
+    <script>
+        const TMDB_API_KEY = '07c4e583a14447b6c4878fc484c83821';
+        const OMDB_API_KEY = 'f8ba74ea&t';
+        const TVMAZE_API_KEY = 'ap-OrcxgEnYrea1fWnT9boo-ftUuhLOL';
+        function fetchMovieDetails(movieTitle) {
+            return fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieTitle)}`)
+              .then(response => response.json())
+              .then(data => {
+                const movies = [];
+                data.results.forEach(function(movie) {
+                  const posterPath = movie.poster_path ? `https://image.tmdb.org/t/p/w500/${movie.poster_path}` : '';
+                  const transformedMovie = {
+                    id: movie.id,
+                    title: movie.title,
+                    poster: posterPath,
+                    plot: movie.overview,
+                    rating: movie.vote_average,
+                  };
+                  movies.push(transformedMovie);
+                });
+                return movies;
+              });
+          }
+          
+          
+          function fetchTVShowDetails(showName) {
+            return fetch(`https://imdb-api.com/en/API/MostPopularTVs/k_5d787w4z/`)
+              .then(response => response.json())
+              .then(data => {
+                const shows = [];
+                data.items.forEach(function(show) {
+                  const transformedShow = {
+                    id: show.id,
+                    title: show.title,
+                    image: show.image,
+                    summary: show.fullTitle,
+                    rating: show.imDbRating,
+                    crew: show.crew,
+                  };
+                  shows.push(transformedShow);
+                });
+                return shows;
+              });
+          }
+          
+          
+          function fetchMovieDetailsOMDB(movieTitle) {
+            return fetch(`https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(movieTitle)}`)
+              .then(response => response.json())
+              .then(data => {
+                const movies = [];
+                data.Search.forEach(function(movie) {
+                  const transformedMovie = {
+                    id: movie.imdbID,
+                    title: movie.Title,
+                    poster: movie.Poster,
+                    plot: '',
+                    rating: '',
+                  };
+                  movies.push(transformedMovie);
+                });
+                return movies;
+              });
+          }
+          
+          //
+          
+          
+          
+          //
+        function createContentElement(content) {
+            const container = document.getElementById('content');
+            container.innerHTML = '';
+    
+            content.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('card','lg-3', 'md-3', 'sm-6');
+    
+                const image = document.createElement('img');
+                image.classList.add('card-img-top');
+                image.src = item.poster || item.image;
+                image.alt = item.title;
+    
+                const cardBody = document.createElement('div');
+                cardBody.classList.add('card-body');
+    
+                const title = document.createElement('h5');
+                title.classList.add('card-title');
+                title.textContent = item.title;
+    
+                const plot = document.createElement('p');
+                plot.classList.add('card-text');
+                plot.textContent = item.plot || item.summary;
+    
+                const rating = document.createElement('p');
+                rating.classList.add('card-text');
+                rating.textContent = `Rating: ${item.rating}`;
+    
+                //const crew = document.createElement('button');
+                //crew.classList.add('btn', 'btn-primary');
+                //crew.textContent = 'Show crew';
+                //crew.addEventListener('click', () => {
+                 //alert(`crew: ${item.crew}`);
+                //});
+                // Create crew container
+                const crewContainer = document.createElement('div');
+                crewContainer.classList.add('crew-container');
+
+                // Event listener for crew button
+                const crew = document.createElement('button');
+                crew.classList.add('btn', 'btn-primary');
+                crew.textContent = 'Show Crew';
+                crew.addEventListener('click', () => {
+                crewContainer.textContent = `Crew: ${item.crew || item.actors}`;
+                });
+
+                // Append crew container to card body
+                
+
+                // Append elements to card
+                card.appendChild(image);
+                card.appendChild(cardBody);
+
+
+                
+                       
+                cardBody.appendChild(title);
+                cardBody.appendChild(plot);
+                cardBody.appendChild(rating);
+                cardBody.appendChild(crew);
+                cardBody.appendChild(crewContainer);
+                card.appendChild(image);
+                card.appendChild(cardBody);
+    
+                container.appendChild(card);
+            });
+        }
+    
+        const searchButton = document.getElementById('searchButton');
+        searchButton.addEventListener('click', () => {
+            const searchInput = document.getElementById('searchInput');
+            const movieTitle = searchInput.value;
+            if (movieTitle) {
+                fetchMovieDetails(movieTitle)
+                    .then(movies => createContentElement(movies))
+                    .catch(error => {
+                        console.log(error);
+                        fetchMovieDetailsOMDB(movieTitle)
+                            .then(movies => createContentElement(movies))
+                            .catch(error => console.log(error));
+                    });
+            }
+        });
+
+        //
+        
+        //
+    
+         const tvShowButton = document.getElementById('tvShowButton');
+        tvShowButton.addEventListener('click', () => {
+            const tvShowName = '';
+            fetchTVShowDetails(tvShowName)
+                .then(shows => createContentElement(shows))
+                .catch(error => console.log(error));
+        }); 
+
+    </script>
+</body>
+</html>
