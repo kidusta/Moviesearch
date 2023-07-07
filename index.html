@@ -8,6 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Kablammo&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
     <title>Movie and TV Show Website</title>
     <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
         body{
             
             background-repeat: no-repeat;
@@ -28,7 +32,7 @@
         }
     
         .card-img-top {
-            height: 400px;
+            height: 350px;
             object-fit: cover;
         }
     
@@ -37,7 +41,7 @@
         }
     
         .card-text {
-            height: 40px;
+            height: 50px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -132,6 +136,7 @@
                     poster: posterPath,
                     plot: movie.overview,
                     rating: movie.vote_average,
+                    genre: movie.genre_ids,
                   };
                   movies.push(transformedMovie);
                 });
@@ -141,24 +146,31 @@
           
           
           function fetchTVShowDetails(showName) {
-            return fetch(`https://imdb-api.com/en/API/MostPopularTVs/k_5d787w4z/`)
+            return fetch('https://api.tvmaze.com/shows')
               .then(response => response.json())
               .then(data => {
                 const shows = [];
-                data.items.forEach(function(show) {
+                data.forEach(function(show) {
+                  const parser = new DOMParser();
+                  const htmlDescription = show.summary;
+                  const parsedDescription = parser.parseFromString(htmlDescription, 'text/html');
+                  const description = parsedDescription.body.textContent.trim();
+          
                   const transformedShow = {
                     id: show.id,
-                    title: show.title,
-                    image: show.image,
-                    summary: show.fullTitle,
-                    rating: show.imDbRating,
-                    crew: show.crew,
+                    title: show.name,
+                    image: show.image.original,
+                    summary: description,
+                    rating: show.rating.average,
+                    crew: show.genres.join(', '),
                   };
                   shows.push(transformedShow);
                 });
                 return shows;
               });
           }
+          
+          
           
           
           function fetchMovieDetailsOMDB(movieTitle) {
@@ -226,9 +238,9 @@
                 // Event listener for crew button
                 const crew = document.createElement('button');
                 crew.classList.add('btn', 'btn-primary');
-                crew.textContent = 'Show Crew';
+                crew.textContent = 'Show Genre';
                 crew.addEventListener('click', () => {
-                crewContainer.textContent = `Crew: ${item.crew || item.actors}`;
+                crewContainer.textContent = `Genre: ${item.crew || item.actors}`;
                 });
 
                 // Append crew container to card body
